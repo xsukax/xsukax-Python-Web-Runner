@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xsukax Python Web Runner</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root { --bg: #ffffff; --surface: #f6f8fa; --border: #d0d7de; --text: #24292f; --text-muted: #57606a; --accent: #0969da; --accent-hover: #0550ae; --success: #1a7f37; --error: #cf222e; --warning: #9a6700; --shadow: rgba(31, 35, 40, 0.04); --mono: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 0; margin-bottom: 24px; }
+.header-content { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 12px; }
+.logo { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent) 0%, #0550ae 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; }
+.header h1 { font-size: 20px; font-weight: 600; color: var(--text); }
+.header-desc { font-size: 14px; color: var(--text-muted); margin-left: auto; }
+.grid { display: grid; grid-template-columns: 1fr 420px; gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px var(--shadow); }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.panel-subtitle { font-size: 13px; color: var(--text-muted); }
+textarea { width: 100%; height: 500px; resize: vertical; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: var(--mono); font-size: 13px; line-height: 1.5; background: white; color: var(--text); transition: border-color 0.2s, box-shadow 0.2s; }
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1); }
+.btn { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--surface); border-color: rgba(31, 35, 40, 0.3); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-sm { padding: 4px 8px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.output-box { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; height: 280px; overflow: auto; font-family: var(--mono); font-size: 13px; line-height: 1.5; color: var(--text); }
+.output-empty { color: var(--text-muted); }
+.text-error { color: var(--error); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-muted { color: var(--text-muted); }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); padding: 4px 8px; background: white; border: 1px solid var(--border); border-radius: 6px; }
+.status.ready { color: var(--success); }
+.pkg-list { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px; max-height: 180px; overflow: auto; font-size: 13px; }
+.pkg-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; background: var(--surface); }
+.pkg-name { font-family: var(--mono); font-size: 12px; color: var(--text); }
+.input { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--text); width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1); }
+.select { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--text); cursor: pointer; }
+.install-row { display: flex; gap: 8px; margin-top: 10px; }
+.info-box { background: rgba(9, 105, 218, 0.05); border: 1px solid rgba(9, 105, 218, 0.2); border-radius: 6px; padding: 10px; font-size: 12px; color: var(--text); line-height: 1.5; margin-top: 10px; }
+.info-box code { background: rgba(9, 105, 218, 0.1); padding: 2px 6px; border-radius: 3px; font-family: var(--mono); font-size: 11px; }
+.checkbox-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+.checkbox-label input { cursor: pointer; }
+.file-input { display: none; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); max-width: 500px; width: 90%; max-height: 80vh; overflow: auto; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.modal-close { background: transparent; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.modal-close:hover { background: var(--surface); color: var(--text); }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.modal-text { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 16px; }
+@media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+<div class="header-content">
+<div class="logo">x</div>
+<div>
+<h1>xsukax Python Web Runner</h1>
+</div>
+<div class="header-desc">Powered by Pyodide WebAssembly</div>
+</div>
+</div>
+
+<div class="container">
+<div class="grid">
+<div>
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Code Editor</span>
+<div class="btn-group">
+<label class="btn btn-sm" for="fileInput">Load .py</label>
+<input type="file" id="fileInput" class="file-input" accept=".py">
+<button class="btn btn-sm" id="saveBtn">Save .py</button>
+<button class="btn btn-sm" id="exampleBtn">Example</button>
+</div>
+</div>
+<textarea id="editor" spellcheck="false"># Welcome to xsukax Python Web Runner
+# Write Python code here and click Run to execute
+
+print('Hello from Pyodide!')
+
+# To use external packages:
+# import micropip
+# await micropip.install('requests')
+# import requests
+</textarea>
+</div>
+</div>
+
+<aside>
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Execution</span>
+<span class="status" id="status">Loading...</span>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" id="runBtn">▶ Run</button>
+<button class="btn" id="runAsyncBtn">▶ Run (async)</button>
+<button class="btn btn-sm" id="clearBtn">Clear</button>
+<button class="btn btn-sm" id="interruptBtn">Interrupt</button>
+</div>
+<div class="info-box">
+Use <code>Run (async)</code> when your code uses <code>await</code> or <code>micropip</code>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Package Manager</span>
+</div>
+<div class="install-row">
+<input type="text" id="pkgInput" class="input" placeholder="Package name or URL">
+<button class="btn btn-primary btn-sm" id="installBtn">Install</button>
+</div>
+<div style="margin-top: 8px;">
+<select id="popularSelect" class="select" style="width: 100%; font-size: 12px;">
+<option value="">Popular packages...</option>
+<option value="requests">requests</option>
+<option value="beautifulsoup4">beautifulsoup4</option>
+<option value="numpy">numpy</option>
+<option value="pandas">pandas</option>
+<option value="matplotlib">matplotlib</option>
+<option value="scipy">scipy</option>
+<option value="pillow">pillow</option>
+<option value="httpx">httpx</option>
+</select>
+</div>
+<div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+<span class="panel-subtitle">Installed Packages</span>
+<button class="btn btn-sm" id="rescanBtn">Rescan</button>
+</div>
+<div id="pkgList" class="pkg-list">
+<div class="text-muted" style="text-align: center; padding: 20px;">No packages installed</div>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Output</span>
+<div style="display: flex; gap: 8px; align-items: center;">
+<button class="btn btn-sm" id="copyBtn">Copy</button>
+<button class="btn btn-sm" id="downloadBtn">Download</button>
+<label class="checkbox-label">
+<input type="checkbox" id="autoscroll" checked> Auto-scroll
+</label>
+</div>
+</div>
+<pre id="output" class="output-box"><span class="output-empty">Output will appear here...</span></pre>
+</div>
+</aside>
+</div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+<div class="modal">
+<div class="modal-header">
+<span class="modal-title" id="modalTitle">Confirm</span>
+<button class="modal-close" id="modalClose">&times;</button>
+</div>
+<div class="modal-body">
+<div class="modal-text" id="modalText"></div>
+</div>
+<div class="modal-footer">
+<button class="btn" id="modalCancel">Cancel</button>
+<button class="btn btn-primary" id="modalConfirm">Confirm</button>
+</div>
+</div>
+</div>
+
+<script>
+const PYODIDE_CDN = 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js';
+const UNAVAILABLE = ['tkinter','pygame','pyglet','wx','kivy','pyside','pyqt','opengl','curses','win32','gi','gtk'];
+let pyodide = null;
+let running = false;
+let packages = [];
+
+function loadSaved() {
+  try {
+    const saved = localStorage.getItem('xsukaxPythonPackages');
+    if (saved) packages = JSON.parse(saved);
+    updatePackageList();
+  } catch(e) { console.warn('Failed to load saved packages', e); }
+}
+
+function savePackages() {
+  localStorage.setItem('xsukaxPythonPackages', JSON.stringify(packages));
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+function setStatus(text, type = '') {
+  const status = document.getElementById('status');
+  status.textContent = text;
+  status.className = 'status' + (type ? ' ' + type : '');
+}
+
+function appendOutput(text, type = '') {
+  const output = document.getElementById('output');
+  if (output.querySelector('.output-empty')) output.innerHTML = '';
+  const span = document.createElement('span');
+  span.textContent = text;
+  if (type) span.className = 'text-' + type;
+  output.appendChild(span);
+  if (document.getElementById('autoscroll').checked) output.scrollTop = output.scrollHeight;
+}
+
+function clearOutput() {
+  document.getElementById('output').innerHTML = '<span class="output-empty">Output will appear here...</span>';
+}
+
+async function loadPyodide() {
+  setStatus('Loading Pyodide...');
+  await loadScript(PYODIDE_CDN);
+  pyodide = await loadPyodide({indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/'});
+  
+  try {
+    await pyodide.loadPackage('micropip');
+    await pyodide.runPythonAsync('import micropip');
+    appendOutput('✓ micropip loaded\n', 'success');
+  } catch(e) {
+    appendOutput('⚠ micropip load failed\n', 'warning');
+  }
+  
+  if (packages.length > 0) {
+    setStatus('Reinstalling packages...');
+    appendOutput('Reinstalling saved packages...\n');
+    for (const pkg of packages) {
+      await installPackage(pkg, true);
+    }
+    appendOutput('✓ All packages reinstalled\n', 'success');
+  }
+  
+  setStatus('Ready', 'ready');
+  await rescanPackages();
+}
+
+function checkAvailability(pkg) {
+  const lower = pkg.toLowerCase();
+  for (const unavail of UNAVAILABLE) {
+    if (lower.includes(unavail)) {
+      return { ok: false, msg: `'${pkg}' is not available in Pyodide (browser limitation)` };
+    }
+  }
+  return { ok: true };
+}
+
+async function installPackage(pkg, silent = false) {
+  if (!pyodide) { appendOutput('✗ Pyodide not ready\n', 'error'); return; }
+  if (!pkg.trim()) { appendOutput('✗ No package specified\n', 'warning'); return; }
+  
+  const check = checkAvailability(pkg);
+  if (!check.ok) {
+    appendOutput(check.msg + '\n', 'error');
+    return;
+  }
+  
+  const btn = document.getElementById('installBtn');
+  btn.disabled = true;
+  btn.textContent = 'Installing...';
+  
+  try {
+    if (!silent) appendOutput(`Installing ${pkg}...\n`);
+    
+    try { await pyodide.loadPackage('micropip'); } catch(e) {}
+    
+    await pyodide.runPythonAsync(`import micropip\nawait micropip.install(${JSON.stringify(pkg)})`);
+    
+    if (!silent) appendOutput(`✓ Installed ${pkg}\n`, 'success');
+    
+    if (!packages.includes(pkg)) {
+      packages.push(pkg);
+      savePackages();
+    }
+    updatePackageList();
+  } catch(err) {
+    const errStr = String(err);
+    if (errStr.includes('404') || errStr.includes('not found')) {
+      appendOutput(`✗ Package '${pkg}' not found on PyPI\n`, 'error');
+    } else if (errStr.includes('No matching distribution')) {
+      appendOutput(`✗ No WASM-compatible wheel for '${pkg}'\n`, 'error');
+    } else {
+      appendOutput(`✗ Install error: ${errStr}\n`, 'error');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Install';
+  }
+}
+
+async function rescanPackages() {
+  if (!pyodide) return;
+  try {
+    const py = `import micropip, json\ntry:\n  pkgs = list(micropip._installed_packages.keys())\nexcept:\n  pkgs = []\njson.dumps(pkgs)`;
+    const result = await pyodide.runPythonAsync(py);
+    const found = JSON.parse(result || '[]');
+    
+    for (const pkg of found) {
+      if (!packages.includes(pkg)) packages.push(pkg);
+    }
+    
+    savePackages();
+    updatePackageList();
+    appendOutput(`✓ Rescanned: ${packages.length} package(s)\n`, 'success');
+  } catch(e) {
+    appendOutput('⚠ Rescan failed\n', 'warning');
+  }
+}
+
+function updatePackageList() {
+  const list = document.getElementById('pkgList');
+  if (packages.length === 0) {
+    list.innerHTML = '<div class="text-muted" style="text-align: center; padding: 20px;">No packages installed</div>';
+    return;
+  }
+  
+  list.innerHTML = '';
+  packages.forEach(pkg => {
+    const item = document.createElement('div');
+    item.className = 'pkg-item';
+    
+    const name = document.createElement('span');
+    name.className = 'pkg-name';
+    name.textContent = pkg;
+    
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm';
+    btn.textContent = 'Remove';
+    btn.onclick = () => showConfirm(`Remove package '${pkg}'?`, () => {
+      const idx = packages.indexOf(pkg);
+      if (idx > -1) {
+        packages.splice(idx, 1);
+        savePackages();
+        updatePackageList();
+        appendOutput(`✓ Removed ${pkg}\n`, 'success');
+      }
+    });
+    
+    item.appendChild(name);
+    item.appendChild(btn);
+    list.appendChild(item);
+  });
+}
+
+async function runCode(async = false) {
+  if (!pyodide) { appendOutput('✗ Pyodide not ready\n', 'error'); return; }
+  if (running) { appendOutput('⚠ Already running, please wait\n', 'warning'); return; }
+  
+  running = true;
+  const code = document.getElementById('editor').value;
+  const wrapper = `\nimport sys, io, traceback\n_out = io.StringIO()\n_old_out, _old_err = sys.stdout, sys.stderr\nsys.stdout = _out; sys.stderr = _out\ntry:\n${code.split('\n').map(l => '    ' + l).join('\n')}\nexcept Exception:\n    traceback.print_exc()\nfinally:\n    sys.stdout = _old_out; sys.stderr = _old_err\n_out.getvalue()`;
+  
+  try {
+    appendOutput('--- Running ---\n');
+    const result = async ? await pyodide.runPythonAsync(wrapper) : pyodide.runPython(wrapper);
+    appendOutput(result);
+    appendOutput('\n--- Finished ---\n');
+  } catch(err) {
+    appendOutput(`✗ Error: ${err}\n`, 'error');
+  } finally {
+    running = false;
+  }
+}
+
+function showConfirm(message, onConfirm) {
+  const modal = document.getElementById('confirmModal');
+  const text = document.getElementById('modalText');
+  const confirmBtn = document.getElementById('modalConfirm');
+  const cancelBtn = document.getElementById('modalCancel');
+  const closeBtn = document.getElementById('modalClose');
+  
+  text.textContent = message;
+  modal.classList.add('active');
+  
+  const close = () => modal.classList.remove('active');
+  
+  const confirm = () => {
+    onConfirm();
+    close();
+  };
+  
+  confirmBtn.onclick = confirm;
+  cancelBtn.onclick = close;
+  closeBtn.onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+}
+
+document.getElementById('fileInput').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    document.getElementById('editor').value = await file.text();
+    appendOutput(`✓ Loaded ${file.name}\n`, 'success');
+  }
+};
+
+document.getElementById('saveBtn').onclick = () => {
+  const blob = new Blob([document.getElementById('editor').value], {type: 'text/x-python'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'script.py';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('exampleBtn').onclick = () => {
+  document.getElementById('editor').value = `# Example: Fetch data with requests
+import micropip
+await micropip.install('requests')
+import requests
+
+response = requests.get('https://httpbin.org/json')
+print('Status:', response.status_code)
+print('Data:', response.json())
+`;
+};
+
+document.getElementById('runBtn').onclick = () => runCode(false);
+document.getElementById('runAsyncBtn').onclick = () => runCode(true);
+document.getElementById('clearBtn').onclick = clearOutput;
+document.getElementById('copyBtn').onclick = () => {
+  const text = document.getElementById('output').textContent;
+  navigator.clipboard.writeText(text);
+  appendOutput('✓ Copied to clipboard\n', 'success');
+};
+
+document.getElementById('downloadBtn').onclick = () => {
+  const blob = new Blob([document.getElementById('output').textContent], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'output.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('installBtn').onclick = () => {
+  const pkg = document.getElementById('pkgInput').value.trim();
+  if (pkg) installPackage(pkg);
+};
+
+document.getElementById('popularSelect').onchange = (e) => {
+  if (e.target.value) document.getElementById('pkgInput').value = e.target.value;
+};
+
+document.getElementById('rescanBtn').onclick = rescanPackages;
+
+document.getElementById('interruptBtn').onclick = () => {
+  if (running) {
+    appendOutput('⚠ Interrupt requested (refresh page to fully stop)\n', 'warning');
+  } else {
+    appendOutput('⚠ No execution running\n', 'warning');
+  }
+};
+
+const editor = document.getElementById('editor');
+editor.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; };
+editor.ondrop = async (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    editor.value = await file.text();
+    appendOutput(`✓ Loaded ${file.name}\n`, 'success');
+  }
+};
+
+loadSaved();
+loadPyodide().catch(err => {
+  setStatus('Load failed', 'error');
+  appendOutput(`✗ Failed to load Pyodide: ${err}\n`, 'error');
+  console.error(err);
+});
+</script>
+</body>
+</html>
